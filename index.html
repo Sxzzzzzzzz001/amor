@@ -7,98 +7,106 @@
 <style>
 body {
     margin: 0;
-    background: radial-gradient(circle, #050505, #000);
     overflow: hidden;
-    font-family: Arial;
+    background: radial-gradient(circle at top, #1a0026, #000);
 }
 
-/* TEXTO LATIDO */
-#frase {
+/* TEXTO */
+#texto {
     position: absolute;
-    top: 50%;
+    top: 10%;
     width: 100%;
     text-align: center;
-    font-size: 50px;
+    font-size: 40px;
     color: white;
-    transform: translateY(-50%);
-    animation: latido 1s infinite;
+    font-family: Arial;
+    animation: latido 1.5s infinite;
 }
 
-/* EFECTO LATIDO REAL */
+/* LATIDO */
 @keyframes latido {
-    0%   { transform: translateY(-50%) scale(1); }
-    25%  { transform: translateY(-50%) scale(1.2); }
-    40%  { transform: translateY(-50%) scale(1); }
-    60%  { transform: translateY(-50%) scale(1.15); }
-    100% { transform: translateY(-50%) scale(1); }
+    0% {transform: scale(1);}
+    50% {transform: scale(1.2);}
+    100% {transform: scale(1);}
 }
 
-/* ESTRELLAS */
-.estrella {
-    position: absolute;
-    width: 2px;
-    height: 2px;
-    background: white;
-    opacity: 0.7;
-    animation: parpadeo 2s infinite alternate;
-}
-
-@keyframes parpadeo {
-    from {opacity: 0.2;}
-    to {opacity: 1;}
-}
-
-/* CORAZONES */
-.corazon {
-    position: absolute;
-    color: pink;
-    animation: flotar 6s linear infinite;
-}
-
-@keyframes flotar {
-    from {
-        transform: translateY(100vh) scale(1);
-        opacity: 1;
-    }
-    to {
-        transform: translateY(-10vh) scale(1.5);
-        opacity: 0;
-    }
+/* CANVAS */
+canvas {
+    display: block;
 }
 </style>
 </head>
 
 <body>
 
-<div id="frase">Miranda ❤️ Mariano</div>
+<div id="texto">Miranda ❤️ Mariano</div>
+<canvas id="canvas"></canvas>
 
 <script>
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
 
-/* ESTRELLAS */
-for (let i = 0; i < 120; i++) {
-    let estrella = document.createElement("div");
-    estrella.className = "estrella";
-    estrella.style.top = Math.random() * 100 + "vh";
-    estrella.style.left = Math.random() * 100 + "vw";
-    document.body.appendChild(estrella);
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+let corazones = [];
+
+/* DIBUJAR CORAZON */
+function dibujarCorazon(x, y, size, color) {
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.bezierCurveTo(x, y - size, x - size, y - size, x - size, y);
+    ctx.bezierCurveTo(x - size, y + size, x, y + size * 1.5, x, y + size * 2);
+    ctx.bezierCurveTo(x, y + size * 1.5, x + size, y + size, x + size, y);
+    ctx.bezierCurveTo(x + size, y - size, x, y - size, x, y);
+    ctx.fill();
 }
 
-/* CORAZONES */
-function crearCorazon() {
-    let c = document.createElement("div");
-    c.className = "corazon";
-    c.innerHTML = "❤️";
-    c.style.left = Math.random() * 100 + "vw";
-    c.style.fontSize = (Math.random() * 20 + 15) + "px";
-
-    document.body.appendChild(c);
-
-    setTimeout(() => {
-        c.remove();
-    }, 6000);
+/* CREAR ARBOL */
+function crearArbol() {
+    for (let i = 0; i < 200; i++) {
+        corazones.push({
+            x: canvas.width / 2 + (Math.random() - 0.5) * 200,
+            y: canvas.height / 2 - Math.random() * 200,
+            size: Math.random() * 8 + 4,
+            color: "hsl(" + (Math.random() * 50 + 330) + ", 100%, 70%)"
+        });
+    }
 }
 
-setInterval(crearCorazon, 250);
+/* ANIMACION */
+function animar() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // tronco
+    ctx.fillStyle = "#5a2d0c";
+    ctx.fillRect(canvas.width/2 - 10, canvas.height/2, 20, 200);
+
+    // corazones (hojas)
+    corazones.forEach(c => {
+        dibujarCorazon(c.x, c.y, c.size, c.color);
+
+        // movimiento suave
+        c.y += Math.sin(Date.now() / 500 + c.x) * 0.3;
+    });
+
+    requestAnimationFrame(animar);
+}
+
+/* INICIAR */
+crearArbol();
+animar();
+
+/* PARTICULAS */
+setInterval(() => {
+    corazones.push({
+        x: canvas.width / 2 + (Math.random() - 0.5) * 200,
+        y: canvas.height / 2 - 200,
+        size: Math.random() * 6 + 3,
+        color: "pink"
+    });
+}, 300);
 
 </script>
 
