@@ -2,35 +2,33 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Miranda ❤️ Mariano</title>
+<title>Mariano ❤️ Miri</title>
 
 <style>
 body {
     margin: 0;
     overflow: hidden;
-    background: radial-gradient(circle at bottom, #0a0015, #000);
     font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(to top, #2b1055, #7597de);
 }
 
 /* TEXTO */
-#texto {
+#frase {
     position: absolute;
-    top: 8%;
+    bottom: 60px;
     width: 100%;
     text-align: center;
-    font-size: 42px;
-    color: #fff;
-    text-shadow: 0 0 15px pink, 0 0 30px hotpink;
-    animation: latido 1.6s infinite;
+    font-size: 38px;
+    color: white;
+    text-shadow: 0 0 20px pink, 0 0 40px hotpink;
+    animation: latido 2s infinite;
 }
 
 @keyframes latido {
-    0% {transform: scale(1);}
-    50% {transform: scale(1.08);}
-    100% {transform: scale(1);}
+    0%,100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
 }
 
-/* CANVAS */
 canvas {
     display: block;
 }
@@ -39,8 +37,8 @@ canvas {
 
 <body>
 
-<div id="texto">Miranda ❤️ Mariano</div>
 <canvas id="c"></canvas>
+<div id="frase">Mariano ❤️ Miri</div>
 
 <script>
 const canvas = document.getElementById("c");
@@ -49,76 +47,82 @@ const ctx = canvas.getContext("2d");
 canvas.width = innerWidth;
 canvas.height = innerHeight;
 
-let particulas = [];
+/* PARTÍCULAS (pétalos) */
+let petals = [];
 
-/* CREAR CORAZON BONITO */
-function corazon(x, y, s, color) {
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.scale(s, s);
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.bezierCurveTo(0, -3, -5, -3, -5, 0);
-    ctx.bezierCurveTo(-5, 3, 0, 5, 0, 7);
-    ctx.bezierCurveTo(0, 5, 5, 3, 5, 0);
-    ctx.bezierCurveTo(5, -3, 0, -3, 0, 0);
-    ctx.fillStyle = color;
-    ctx.fill();
-    ctx.restore();
+for (let i = 0; i < 200; i++) {
+    petals.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        size: Math.random() * 4 + 2,
+        speed: Math.random() * 1 + 0.5,
+        sway: Math.random() * 2
+    });
 }
 
-/* GENERAR FORMA DE ÁRBOL (mejor distribuido) */
-function crearArbol() {
-    for (let i = 0; i < 300; i++) {
-        let angle = Math.random() * Math.PI;
-        let radius = Math.random() * 150;
+/* DIBUJAR PÉTALO */
+function drawPetal(x, y, s) {
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.bezierCurveTo(x - s, y - s, x - s, y + s, x, y + s*1.5);
+    ctx.bezierCurveTo(x + s, y + s, x + s, y - s, x, y);
+    ctx.fillStyle = "rgba(255,182,193,0.8)";
+    ctx.fill();
+}
 
-        particulas.push({
-            x: canvas.width/2 + Math.cos(angle) * radius,
-            y: canvas.height/2 - 100 + Math.sin(angle) * radius * 0.6,
-            size: Math.random() * 0.8 + 0.5,
-            color: `hsl(${330 + Math.random()*30},100%,70%)`,
-            offset: Math.random() * 1000
-        });
-    }
+/* DIBUJAR ÁRBOL (silueta) */
+function drawTree() {
+    ctx.fillStyle = "#3b1c0a";
+
+    ctx.beginPath();
+    ctx.moveTo(canvas.width/2 - 20, canvas.height/2 + 100);
+    ctx.lineTo(canvas.width/2 + 20, canvas.height/2 + 100);
+    ctx.lineTo(canvas.width/2 + 10, canvas.height/2 + 300);
+    ctx.lineTo(canvas.width/2 - 10, canvas.height/2 + 300);
+    ctx.fill();
+
+    // copa
+    let gradient = ctx.createRadialGradient(
+        canvas.width/2,
+        canvas.height/2 - 50,
+        20,
+        canvas.width/2,
+        canvas.height/2 - 50,
+        200
+    );
+
+    gradient.addColorStop(0, "#ff99cc");
+    gradient.addColorStop(1, "transparent");
+
+    ctx.fillStyle = gradient;
+
+    ctx.beginPath();
+    ctx.arc(canvas.width/2, canvas.height/2 - 50, 200, 0, Math.PI*2);
+    ctx.fill();
 }
 
 /* ANIMACIÓN */
-function draw() {
+function animate() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // TRONCO bonito
-    ctx.fillStyle = "#3b1c0a";
-    ctx.beginPath();
-    ctx.moveTo(canvas.width/2 - 15, canvas.height/2 + 50);
-    ctx.lineTo(canvas.width/2 + 15, canvas.height/2 + 50);
-    ctx.lineTo(canvas.width/2 + 5, canvas.height/2 + 200);
-    ctx.lineTo(canvas.width/2 - 5, canvas.height/2 + 200);
-    ctx.fill();
+    drawTree();
 
-    // HOJAS (corazones)
-    particulas.forEach(p => {
-        let float = Math.sin(Date.now()/1000 + p.offset) * 2;
-        corazon(p.x, p.y + float, p.size, p.color);
+    petals.forEach(p => {
+        p.y += p.speed;
+        p.x += Math.sin(p.y / 50) * p.sway;
+
+        drawPetal(p.x, p.y, p.size);
+
+        if (p.y > canvas.height) {
+            p.y = -10;
+            p.x = Math.random() * canvas.width;
+        }
     });
 
-    requestAnimationFrame(draw);
+    requestAnimationFrame(animate);
 }
 
-crearArbol();
-draw();
-
-/* CORAZONES FLOTANDO */
-setInterval(() => {
-    particulas.push({
-        x: canvas.width/2 + (Math.random()-0.5)*200,
-        y: canvas.height/2 - 200,
-        size: Math.random()*0.6 + 0.4,
-        color: "pink",
-        offset: Math.random()*1000
-    });
-}, 200);
-
+animate();
 </script>
 
 </body>
